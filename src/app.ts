@@ -309,7 +309,6 @@ export class Simulator {
     public loadImage(filename: string, stereoMode: StereoMode) {
         this.pushAction(() => new Promise<void>((resolve, reject) => {
             this.app.networking.broadcast("loadImage", filename, stereoMode);
-            console.log("loadImage", filename, stereoMode);
             resolve();
         }));
         this.barrier();
@@ -319,7 +318,6 @@ export class Simulator {
     public loadColor(r: number, g: number, b: number) {
         this.pushAction(() => new Promise<void>((resolve, reject) => {
             this.app.networking.broadcast("loadColor", r, g, b);
-            console.log("loadColor", r, g, b);
             resolve();
         }));
         this.present();
@@ -328,7 +326,6 @@ export class Simulator {
     public loadMessage(text: string) {
         this.pushAction(() => new Promise<void>((resolve, reject) => {
             this.app.networking.broadcast("loadMessage", text);
-            console.log("loadMessage", text);
             resolve();
         }));
         this.present();
