@@ -23,6 +23,8 @@
   "devDependencies": {
     "@types/js-yaml": "^3.5.29",
     "@types/node": "^7.0.5",
-    "typescript": "^2.1.6"
+    "browserify": "^14.1.0",
+    "typescript": "^2.1.6",
+    "watchify": "^3.9.0"
   }
 }

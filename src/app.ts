@@ -29,6 +29,7 @@ export class Renderer {
     app: IRendererRuntime;
     nav: WindowNavigation;
     config: RendererConfig;
+    pose: Pose;
 
     thisScene: Scene;
     nextScene: Scene;
@@ -36,6 +37,7 @@ export class Renderer {
 
     constructor(app: IRendererRuntime) {
         this.app = app;
+        this.pose = new Pose();
 
         if (true) {
             this.nav = new WindowNavigation(app.window, app.omni);
@@ -50,6 +52,7 @@ export class Renderer {
         this.app.networking.on("nextFrame", this.onNextFrame.bind(this));
         this.app.networking.on("present", this.onPresent.bind(this));
         this.app.networking.on("loadColor", this.onLoadColor.bind(this));
+        this.app.networking.on("pose", this.onPose.bind(this));
 
         this.thisScene = null;
         this.nextScene = null;
@@ -99,6 +102,22 @@ export class Renderer {
         }
     }
 
+    onPose(yaw: number, pitch: number, roll: number) {
+        let q = new Quaternion();
+	    let t0 = Math.cos(yaw * 0.5);
+	    let t1 = Math.sin(yaw * 0.5);
+	    let t2 = Math.cos(roll * 0.5);
+	    let t3 = Math.sin(roll * 0.5);
+	    let t4 = Math.cos(pitch * 0.5);
+	    let t5 = Math.sin(pitch * 0.5);
+
+	    q.w = t0 * t2 * t4 + t1 * t3 * t5;
+	    q.v.z = t0 * t3 * t4 - t1 * t2 * t5;
+	    q.v.x = t0 * t2 * t5 + t1 * t3 * t4;
+	    q.v.y = t1 * t2 * t4 - t0 * t3 * t5;
+	    this.pose.rotation = q;
+    }
+
     public makeNextScene(scene: Scene) {
         if(this.nextScene != null) this.thisScene = this.nextScene;
         this.nextScene = scene;
@@ -120,11 +139,13 @@ export class Renderer {
 
         if(this.thisScene) {
             this.thisScene.setAlpha(1);
+            this.thisScene.pose = this.pose;
             this.thisScene.render();
         }
 
         if(this.nextScene) {
             this.nextScene.setAlpha(this.blendFactor);
+            this.nextScene.pose = this.pose;
             this.nextScene.render();
         }
 
@@ -144,13 +165,31 @@ export class Simulator {
     actions: Promise<void>;
     renderers: Set<string>;
 
+    pose: {
+        yaw: number;
+        yawSpeed: number;
+        pitch: number;
+        pitchSpeed: number;
+        roll: number;
+        rollSpeed: number;
+    };
+
     constructor(app: ISimulatorRuntime) {
         this.app = app;
         this.actions = null;
+        this.pose = {
+            yaw: 0,
+            yawSpeed: 0,
+            pitch: 0,
+            pitchSpeed: 0,
+            roll: 0,
+            rollSpeed: 0
+        };
 
         app.server.on("loadImage", this.loadImage.bind(this));
         app.server.on("loadColor", this.loadColor.bind(this));
         app.server.on("loadMessage", this.loadMessage.bind(this));
+        app.server.on("pose", this.onPose.bind(this));
 
         app.server.rpc("getImages", this.getImages.bind(this));
         app.server.rpc("getThumbnail", this.getThumbnail.bind(this));
@@ -163,6 +202,10 @@ export class Simulator {
         });
 
         app.server.addStatic("/web", "dist/web");
+
+        setInterval(() => {
+            this.onFrame();
+        }, 10);
     }
 
     public getImages(): { filename: string, dirname: string, stereoMode: string }[] {
@@ -200,6 +243,45 @@ export class Simulator {
         }
         let dataurl = "data:image/png;base64," + fs.readFileSync(thumbnailPath).toString("base64");
         return dataurl;
+    }
+
+    public onPose(action: string, direction: string, value: number) {
+        if(action == "reset") {
+            switch(direction) {
+                case "yaw": {
+                    this.pose.yaw = 0;
+                    this.pose.yawSpeed = 0;
+                } break;
+                case "pitch": {
+                    this.pose.pitch = 0;
+                    this.pose.pitchSpeed = 0;
+                } break;
+                case "roll": {
+                    this.pose.roll = 0;
+                    this.pose.rollSpeed = 0;
+                } break;
+            }
+        }
+        if(action == "level") {
+            switch(direction) {
+                case "yaw": {
+                    this.pose.yawSpeed = value;
+                } break;
+                case "pitch": {
+                    this.pose.pitchSpeed = value;
+                } break;
+                case "roll": {
+                    this.pose.rollSpeed = value;
+                } break;
+            }
+        }
+    }
+
+    public onFrame() {
+        this.pose.yaw += this.pose.yawSpeed * 0.01 / 3;
+        this.pose.pitch += this.pose.pitchSpeed * 0.01 / 3;
+        this.pose.roll += this.pose.rollSpeed * 0.01 / 3;
+        this.app.networking.broadcast("pose", this.pose.yaw, this.pose.pitch, this.pose.roll);
     }
 
     public pushAction(action: () => Promise<void>) {

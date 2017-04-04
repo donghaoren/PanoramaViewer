@@ -1,0 +1,72 @@
+body {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 14px;
+}
+
+#container {
+    margin: 10px 10px;
+}
+
+.images-container {
+
+}
+
+.image-list-view a {
+    display: inline-block;
+    text-align: center;
+    width: 150px;
+    color: black;
+    text-decoration: none;
+    padding: 5px;
+    margin: 5px;
+}
+
+.image-list-view a:focus, .image-list-view a:hover {
+    background: #EEE;
+}
+
+.image-list-view a .image {
+    width: 150px;
+    height: 100px;
+    background-size: 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.image-list-view a .image img {
+    width: 100%;
+}
+
+.level-buttons {
+
+}
+
+.level-buttons button {
+    border: none;
+    padding: 5px 10px;
+    margin-right: 3px;
+    font-size: 14px;
+    background: #EEE;
+    outline: none;
+    cursor: pointer;
+}
+.level-buttons button:active, .level-buttons button:hover {
+    background: #FF7F0E;
+    color: white;
+    outline: none;
+}
+
+.controls-view p {
+    margin: 5px 0;
+}
+.controls-view p label {
+    width: 50px;
+    text-align: right;
+    display: inline-block;
+}
+
+.panel {
+    border: 1px solid #EEE;
+    margin: 10px;
+    padding: 10px;
+}
