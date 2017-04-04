@@ -1,0 +1,24 @@
+OpenVR: false
+
+omnistereo:
+    resolution: 2048
+    resolution_scale: 2
+    capture_method: per_projection
+    warpblend:
+        generate: perspective
+        generate_fov: 80
+
+http:
+    port: 8080
+    static: "static"
+
+searchPaths:
+    - images
+
+broadcasting:
+    renderer:
+        sub: tcp://127.0.0.1:7000
+        push: tcp://127.0.0.1:7001
+    simulator:
+        pub: tcp://127.0.0.1:7000
+        pull: tcp://127.0.0.1:7001

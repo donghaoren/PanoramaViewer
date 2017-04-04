@@ -1,0 +1,28 @@
+{
+  "name": "allosphere-panorama-viewer",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "allofw-run dist/app.js",
+    "build": "tsc -p src && browserify dist/web/main.js -o dist/web/main.bundle.js",
+    "watch:browserify": "watchify dist/web/main.js -o dist/web/main.bundle.js",
+    "watch:ts": "tsc -p src -w",
+    "watch": "multirun-npm watch:ts watch:browserify"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@types/react": "^15.0.21",
+    "@types/react-dom": "^0.14.23",
+    "allofw": "0.0.7",
+    "allofw-utils": "0.0.7",
+    "js-yaml": "^3.8.1",
+    "react": "^15.4.2",
+    "react-dom": "^15.4.2"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^3.5.29",
+    "@types/node": "^7.0.5",
+    "typescript": "^2.1.6"
+  }
+}
