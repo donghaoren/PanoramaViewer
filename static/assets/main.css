@@ -19,6 +19,8 @@ body {
     text-decoration: none;
     padding: 5px;
     margin: 5px;
+    word-wrap: break-word;
+    vertical-align: top;
 }
 
 .image-list-view a:focus, .image-list-view a:hover {
