@@ -35,7 +35,7 @@ export class ImageListView extends React.Component<{}, {
         return (
             <div className="image-list-view">
             { this.state.list.map((l, index) => (
-                <a id="item" key={`img-${index}`} onClick={() => this.loadImage(l)} href="#" title={l.dirname + "/" + l.filename}>
+                <a id="item" key={`img-${index}`} onClick={(e) => { this.loadImage(l); e.preventDefault(); }} href="#" title={l.dirname + "/" + l.filename}>
                     <div className="image" style={{ backgroundImage: `url("${l.thumbnail}")` }}></div>
                     <label>{l.filename}</label>
                 </a>

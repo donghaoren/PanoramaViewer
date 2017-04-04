@@ -206,7 +206,7 @@ export class Simulator {
 
         setInterval(() => {
             this.onFrame();
-        }, 10);
+        }, 5);
     }
 
     public getImages(): { filename: string, dirname: string, stereoMode: string }[] {
@@ -288,9 +288,9 @@ export class Simulator {
     }
 
     public onFrame() {
-        this.pose.yaw += this.pose.yawSpeed * 0.01 / 3;
-        this.pose.pitch += this.pose.pitchSpeed * 0.01 / 3;
-        this.pose.roll += this.pose.rollSpeed * 0.01 / 3;
+        this.pose.yaw += this.pose.yawSpeed * 0.01 / 10;
+        this.pose.pitch += this.pose.pitchSpeed * 0.01 / 10;
+        this.pose.roll += this.pose.rollSpeed * 0.01 / 10;
         this.app.networking.broadcast("pose", this.pose.yaw, this.pose.pitch, this.pose.roll);
     }
 
@@ -348,7 +348,7 @@ export class Simulator {
                 } else {
                     this.app.networking.broadcast("present", dt / duration, false);
                 }
-            }, 10);
+            }, 5);
         }));
     }
 }

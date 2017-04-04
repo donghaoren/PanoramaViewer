@@ -125,7 +125,7 @@ export class EquirectangularTextureRenderer {
                 stereoAddresser = `vec2(-lng / PI / 2.0 + 0.5, -lat / PI + 0.5)`;
             } break;
             case "top-bottom": {
-                stereoAddresser = `vec2(-lng / PI / 2.0 + 0.5, -lat / PI + 0.25 + (omni_eye > 0.0 ? 0.5 : 0))`;
+                stereoAddresser = `vec2(-lng / PI / 2.0 + 0.5, -lat / PI / 2.0 + 0.25 + (omni_eye > 0.0 ? 0.5 : 0))`;
             } break;
         }
 

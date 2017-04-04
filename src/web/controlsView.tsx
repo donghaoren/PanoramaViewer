@@ -13,18 +13,27 @@ export class LevelButtons extends React.Component<{
         };
         window.addEventListener("mouseup", onup);
     }
+    public tdown(e: any, value: number) {
+        e.preventDefault();
+        this.props.onLevel(value);
+        let onup = () => {
+            window.removeEventListener("touchend", onup);
+            this.props.onLevel(0);
+        };
+        window.addEventListener("touchend", onup);
+    }
     public render() {
         return (
             <span className="level-buttons">
-                <button onMouseDown={() => this.down(-10)}>-10</button>
-                <button onMouseDown={() => this.down(-5)}>-5</button>
-                <button onMouseDown={() => this.down(-2)}>-2</button>
-                <button onMouseDown={() => this.down(-1)}>-1</button>
+                <button onTouchStart={(e) => this.tdown(e, -10)} onMouseDown={() => this.down(-10)}>-10</button>
+                <button onTouchStart={(e) => this.tdown(e, -5)} onMouseDown={() => this.down(-5)}>-5</button>
+                <button onTouchStart={(e) => this.tdown(e, -2)} onMouseDown={() => this.down(-2)}>-2</button>
+                <button onTouchStart={(e) => this.tdown(e, -1)} onMouseDown={() => this.down(-1)}>-1</button>
                 <button onClick={() => this.props.onReset()}>RESET</button>
-                <button onMouseDown={() => this.down(+1)}>+1</button>
-                <button onMouseDown={() => this.down(+2)}>+2</button>
-                <button onMouseDown={() => this.down(+5)}>+5</button>
-                <button onMouseDown={() => this.down(+10)}>+10</button>
+                <button onTouchStart={(e) => this.tdown(e, +1)} onMouseDown={() => this.down(+1)}>+1</button>
+                <button onTouchStart={(e) => this.tdown(e, +2)} onMouseDown={() => this.down(+2)}>+2</button>
+                <button onTouchStart={(e) => this.tdown(e, +5)} onMouseDown={() => this.down(+5)}>+5</button>
+                <button onTouchStart={(e) => this.tdown(e, +10)} onMouseDown={() => this.down(+10)}>+10</button>
             </span>
         );
     }
