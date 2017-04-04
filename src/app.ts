@@ -210,7 +210,7 @@ export class Simulator {
         }
     }
 
-    public barrier(timeout: number = 1000) {
+    public barrier(timeout: number = 10000) {
         this.pushAction(() => this.app.networking.barrier(timeout));
     }
 
