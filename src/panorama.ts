@@ -119,6 +119,16 @@ export class EquirectangularTextureRenderer {
         this.omni = omni;
         this.pose = new Pose();
 
+        let stereoAddresser = "vec2(0, 0)";
+        switch(stereoMode) {
+            case "mono": {
+                stereoAddresser = `vec2(-lng / PI / 2.0 + 0.5, -lat / PI + 0.5)`;
+            } break;
+            case "top-bottom": {
+                stereoAddresser = `vec2(-lng / PI / 2.0 + 0.5, -lat / PI + 0.25 + (omni_eye > 0.0 ? 0.5 : 0))`;
+            } break;
+        }
+
         let program = compileShaders({
             vertex: "#version 330\n" + omni.getShaderCode() + `
                 layout(location = 0) in vec3 position;
@@ -130,7 +140,7 @@ export class EquirectangularTextureRenderer {
 
                 void main() {
                     vec3 p = omni_quat_rotate(pose_rotation, position * pose_scale) + pose_position;
-                    gl_Position = omni_render(omni_transform(p));
+                    gl_Position = omni_project(omni_transform(p));
                     vo_position = position;
                 }
             `,
@@ -147,10 +157,7 @@ export class EquirectangularTextureRenderer {
                     float lat = atan(position.y, length(position.xz));
                     // You can play with distrotion here by changing lat, lng.
 
-                    fragment_color = vec4(texture(texImage, vec2(
-                        -lng / PI / 2.0 + 0.5,
-                        -lat / PI + 0.5
-                    )).rgb * uAlpha, uAlpha);
+                    fragment_color = vec4(texture(texImage, ${stereoAddresser}).rgb * uAlpha, uAlpha);
                 }
             `,
             geometry: null

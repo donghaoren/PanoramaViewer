@@ -3,6 +3,7 @@ import * as path from "path";
 import { GL3 as GL, graphics } from "allofw";
 import { IRendererRuntime, WindowNavigation, Vector3, Quaternion, Pose, ISimulatorRuntime } from "allofw-utils";
 import { StereoMode, Scene, PanoramaImageScene, PanoramaVideoScene, MessageScene, BlankScene } from "./scene";
+import * as yaml from "js-yaml";
 
 export interface RendererConfig {
     searchPaths?: string[];
@@ -212,17 +213,26 @@ export class Simulator {
         let paths = (this.app.config as RendererConfig).searchPaths;
         let result: { filename: string, dirname: string, stereoMode: string }[] = [];
         paths.forEach(p => {
-            let items = fs.readdirSync(p);
-            items.forEach(x => {
-                let extension = path.extname(x).toLowerCase();
-                if(extension == ".jpg" || extension == ".jpeg" || extension == ".png") {
-                    result.push({
-                        filename: x,
-                        dirname: p,
-                        stereoMode: "mono"
-                    });
+            try {
+                let manifestFile = path.join(p, "panoramas.manifest");
+                let manifest: { [ name: string ] : string } = {};
+                if(fs.existsSync(manifestFile)) {
+                    manifest = yaml.load(fs.readFileSync(manifestFile, "utf-8"));
                 }
-            });
+                let items = fs.readdirSync(p);
+                items.forEach(x => {
+                    let extension = path.extname(x).toLowerCase();
+                    if(extension == ".jpg" || extension == ".jpeg" || extension == ".png") {
+                        if(manifest[x] == "ignore") return;
+                        result.push({
+                            filename: x,
+                            dirname: p,
+                            stereoMode: manifest[x] ? manifest[x] : "mono"
+                        });
+                    }
+                });
+            } catch(e) {
+            }
         });
         return result;
     }
