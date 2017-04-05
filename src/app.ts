@@ -50,7 +50,6 @@ export class Renderer {
         this.app.networking.on("loadImage", this.onLoadImage.bind(this));
         this.app.networking.on("loadVideo", this.onLoadVideo.bind(this));
         this.app.networking.on("loadMessage", this.onLoadMessage.bind(this));
-        this.app.networking.on("nextFrame", this.onNextFrame.bind(this));
         this.app.networking.on("present", this.onPresent.bind(this));
         this.app.networking.on("loadColor", this.onLoadColor.bind(this));
         this.app.networking.on("pose", this.onPose.bind(this));
@@ -72,10 +71,12 @@ export class Renderer {
         }
     }
 
-    onLoadVideo(filename: string, stereoMode: StereoMode) {
+    onLoadVideo(filename: string, stereoMode: StereoMode, framerate: number, timestamp: number) {
         filename = resolveFile(filename, this.config.searchPaths);
         if (filename) {
-            this.makeNextScene(new PanoramaVideoScene(this.app.omni, filename, stereoMode));
+            let video = new PanoramaVideoScene(this.app.omni, filename, stereoMode, framerate);
+            this.makeNextScene(video);
+            video.start(timestamp);
         } else {
             this.makeNextScene(new MessageScene(this.app.omni, `cannot open ${filename}`));
         }
@@ -89,10 +90,6 @@ export class Renderer {
         this.makeNextScene(new BlankScene(this.app.omni, r, g, b));
     }
 
-    onNextFrame() {
-        this.thisScene.nextFrame();
-    }
-
     onPresent(blendFactor: number, finished: boolean) {
         if (finished) {
             this.thisScene = this.nextScene;
@@ -103,7 +100,7 @@ export class Renderer {
         }
     }
 
-    onPose(yaw: number, pitch: number, roll: number) {
+    onPose(yaw: number, pitch: number, roll: number, timestamp: number) {
         let q = new Quaternion();
 	    let t0 = Math.cos(yaw * 0.5);
 	    let t1 = Math.sin(yaw * 0.5);
@@ -117,6 +114,12 @@ export class Renderer {
 	    q.v.x = t0 * t2 * t5 + t1 * t3 * t4;
 	    q.v.y = t1 * t2 * t4 - t0 * t3 * t5;
 	    this.pose.rotation = q;
+        if(this.thisScene) {
+            this.thisScene.frame(timestamp);
+        }
+        if(this.nextScene) {
+            this.nextScene.frame(timestamp);
+        }
     }
 
     public makeNextScene(scene: Scene) {
@@ -188,11 +191,13 @@ export class Simulator {
         };
 
         app.server.on("loadImage", this.loadImage.bind(this));
+        app.server.on("loadVideo", this.loadVideo.bind(this));
         app.server.on("loadColor", this.loadColor.bind(this));
         app.server.on("loadMessage", this.loadMessage.bind(this));
         app.server.on("pose", this.onPose.bind(this));
 
         app.server.rpc("getImages", this.getImages.bind(this));
+        app.server.rpc("getVideos", this.getVideos.bind(this));
         app.server.rpc("getThumbnail", this.getThumbnail.bind(this));
 
         this.renderers = new Set<string>();
@@ -228,6 +233,35 @@ export class Simulator {
                             filename: x,
                             dirname: p,
                             stereoMode: manifest[x] ? manifest[x] : "mono"
+                        });
+                    }
+                });
+            } catch(e) {
+            }
+        });
+        return result;
+    }
+
+    public getVideos(): { filename: string, dirname: string, stereoMode: string, framerate: number }[] {
+        let paths = (this.app.config as RendererConfig).searchPaths;
+        let result: { filename: string, dirname: string, stereoMode: string, framerate: number }[] = [];
+        paths.forEach(p => {
+            try {
+                let manifestFile = path.join(p, "panoramas.manifest");
+                let manifest: { [ name: string ] : [ string, number ] } = {};
+                if(fs.existsSync(manifestFile)) {
+                    manifest = yaml.load(fs.readFileSync(manifestFile, "utf-8"));
+                }
+                let items = fs.readdirSync(p);
+                items.forEach(x => {
+                    let extension = path.extname(x).toLowerCase();
+                    if(extension == ".mp4" || extension == ".mov" || extension == ".mpeg") {
+                        if(manifest[x] && manifest[x][0] == "ignore") return;
+                        result.push({
+                            filename: x,
+                            dirname: p,
+                            stereoMode: manifest[x] ? manifest[x][0] : "mono",
+                            framerate: manifest[x] ? manifest[x][1] : 30
                         });
                     }
                 });
@@ -291,7 +325,7 @@ export class Simulator {
         this.pose.yaw += this.pose.yawSpeed * 0.01 / 10;
         this.pose.pitch += this.pose.pitchSpeed * 0.01 / 10;
         this.pose.roll += this.pose.rollSpeed * 0.01 / 10;
-        this.app.networking.broadcast("pose", this.pose.yaw, this.pose.pitch, this.pose.roll);
+        this.app.networking.broadcast("pose", this.pose.yaw, this.pose.pitch, this.pose.roll, new Date().getTime());
     }
 
     public pushAction(action: () => Promise<void>) {
@@ -309,6 +343,15 @@ export class Simulator {
     public loadImage(filename: string, stereoMode: StereoMode) {
         this.pushAction(() => new Promise<void>((resolve, reject) => {
             this.app.networking.broadcast("loadImage", filename, stereoMode);
+            resolve();
+        }));
+        this.barrier();
+        this.present();
+    }
+
+    public loadVideo(filename: string, stereoMode: StereoMode, framerate: number) {
+        this.pushAction(() => new Promise<void>((resolve, reject) => {
+            this.app.networking.broadcast("loadVideo", filename, stereoMode, framerate, new Date().getTime() + 200);
             resolve();
         }));
         this.barrier();

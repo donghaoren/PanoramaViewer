@@ -52,12 +52,10 @@ export class ControlsView extends React.Component<{}, {}> {
 
     public render() {
         return (
-            <div className="panel">
-                <div className="controls-view">
-                    <p><label>Yaw:</label> <LevelButtons onReset={() => server.message("pose", "reset", "yaw")} onLevel={(value) => server.message("pose", "level", "yaw", value)} /></p>
-                    <p><label>Pitch:</label> <LevelButtons onReset={() => server.message("pose", "reset", "pitch")} onLevel={(value) => server.message("pose", "level", "pitch", value)} /></p>
-                    <p><label>Roll:</label> <LevelButtons onReset={() => server.message("pose", "reset", "roll")} onLevel={(value) => server.message("pose", "level", "roll", value)} /></p>
-                </div>
+            <div className="controls-view">
+                <p><label>Yaw:</label> <LevelButtons onReset={() => server.message("pose", "reset", "yaw")} onLevel={(value) => server.message("pose", "level", "yaw", value)} /></p>
+                <p><label>Pitch:</label> <LevelButtons onReset={() => server.message("pose", "reset", "pitch")} onLevel={(value) => server.message("pose", "level", "pitch", value)} /></p>
+                <p><label>Roll:</label> <LevelButtons onReset={() => server.message("pose", "reset", "roll")} onLevel={(value) => server.message("pose", "level", "roll", value)} /></p>
             </div>
         );
     }

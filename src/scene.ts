@@ -15,7 +15,7 @@ export class Scene {
 
     public setAlpha(alpha: number) {}
     public render() {}
-    public nextFrame() {}
+    public frame(t: number) {}
 }
 
 export class PanoramaImageScene extends Scene {
@@ -56,8 +56,68 @@ export class PanoramaImageScene extends Scene {
 }
 
 export class PanoramaVideoScene extends Scene {
-    constructor(omni: IOmniStereo, filename: string, stereoMode: StereoMode) {
+    private texture_panorama: GL.Texture;
+    private renderer: EquirectangularTextureRenderer;
+    private video: graphics.VideoSurface2D;
+    private framerate: number;
+
+    constructor(omni: IOmniStereo, filename: string, stereoMode: StereoMode, framerate: number = 30) {
         super(omni);
+        this.video = new graphics.VideoSurface2D(filename);
+        this.framerate = framerate;
+        // Create an OpenGL texture, set parameters.
+        let texture_panorama = new GL.Texture();
+        GL.bindTexture(GL.TEXTURE_2D, texture_panorama);
+
+        GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, GL.LINEAR);
+        GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.LINEAR);
+        GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, GL.REPEAT);  // longitude set to repeat to avoid seam on the border of the image.
+        GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, GL.CLAMP_TO_EDGE);   // latitude set to clamp.
+        GL.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, this.video.width(), this.video.height(), 0, GL.RGBA, GL.UNSIGNED_BYTE, this.video.pixels());
+        GL.bindTexture(GL.TEXTURE_2D, 0);
+
+        this.texture_panorama = texture_panorama;
+
+        this.renderer = new EquirectangularTextureRenderer(omni, texture_panorama, stereoMode);
+    }
+
+    public upload() {
+        GL.bindTexture(GL.TEXTURE_2D, this.texture_panorama);
+        GL.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, this.video.width(), this.video.height(), 0, GL.RGBA, GL.UNSIGNED_BYTE, this.video.pixels());
+        GL.bindTexture(GL.TEXTURE_2D, 0);
+    }
+
+    public setAlpha(alpha: number) {
+        this.renderer.setAlpha(alpha);
+    }
+
+    private tStart: number;
+    private frameIndex: number;
+
+    public start(t: number) {
+        this.frameIndex = 1;
+        this.tStart = t;
+        this.video.seek(0);
+        this.video.nextFrame();
+        this.upload();
+    }
+
+    public frame(t: number) {
+        let frameDesired = (t - this.tStart) * this.framerate / 1000;
+        let changed = false;
+        while(this.frameIndex < frameDesired) {
+            this.video.nextFrame();
+            this.frameIndex += 1;
+            changed = true;
+        }
+        if(changed) {
+            this.upload();
+        }
+    }
+
+    public render() {
+        this.renderer.setPose(this.pose);
+        this.renderer.render();
     }
 }
 

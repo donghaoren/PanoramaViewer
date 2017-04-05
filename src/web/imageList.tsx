@@ -1,5 +1,6 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
+import { orderFiles } from "./utils";
 
 export interface IImageInfo {
     filename: string;
@@ -17,7 +18,7 @@ export class ImageListView extends React.Component<{}, {
         this.state = { list: [] };
 
         server.rpc("getImages").then((list: IImageInfo[]) => {
-            for(let l of list) {
+            for (let l of list) {
                 server.rpc("getThumbnail", l.dirname + "/" + l.filename).then((dataurl) => {
                     l.thumbnail = dataurl;
                     this.setState({ list: this.state.list });
@@ -34,12 +35,19 @@ export class ImageListView extends React.Component<{}, {
     public render() {
         return (
             <div className="image-list-view">
-            { this.state.list.map((l, index) => (
-                <a id="item" key={`img-${index}`} onClick={(e) => { this.loadImage(l); e.preventDefault(); }} href="#" title={l.dirname + "/" + l.filename}>
-                    <div className="image" style={{ backgroundImage: `url("${l.thumbnail}")` }}></div>
-                    <label>{l.filename}</label>
-                </a>
-            )) }
+                {orderFiles(this.state.list).map(list => (
+                    <div className="files">
+                        <h3>{list.dirname}</h3>
+                        <p>
+                            {list.files.map((l, index) => (
+                                <a id="item" key={`img-${index}`} onClick={(e) => { this.loadImage(l); e.preventDefault(); }} href="#" title={l.dirname + "/" + l.filename}>
+                                    <div className="image" style={{ backgroundImage: l.thumbnail ? `url("${l.thumbnail}")` : null }}></div>
+                                    <label>{l.filename}</label>
+                                </a>
+                            ))}
+                        </p>
+                    </div>
+                ) }
             </div>
         );
     }

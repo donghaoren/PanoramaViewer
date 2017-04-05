@@ -1,6 +1,8 @@
 body {
     font-family: Helvetica, Arial, sans-serif;
     font-size: 14px;
+    color: #888;
+    background: black;
 }
 
 #container {
@@ -15,7 +17,7 @@ body {
     display: inline-block;
     text-align: center;
     width: 150px;
-    color: black;
+    color: #888;
     text-decoration: none;
     padding: 5px;
     margin: 5px;
@@ -24,7 +26,8 @@ body {
 }
 
 .image-list-view a:focus, .image-list-view a:hover {
-    background: #EEE;
+    background: rgba(255,255,255, 0.1);
+    color: #ccc;
 }
 
 .image-list-view a .image {
@@ -48,9 +51,10 @@ body {
     padding: 5px 10px;
     margin-right: 3px;
     font-size: 14px;
-    background: #EEE;
+    background: #222;
     outline: none;
     cursor: pointer;
+    color: #CCC;
 }
 .level-buttons button:active, .level-buttons button:hover {
     background: #FF7F0E;
@@ -67,8 +71,15 @@ body {
     display: inline-block;
 }
 
-.panel {
-    border: 1px solid #EEE;
-    margin: 10px;
-    padding: 10px;
+h2 {
+    font-weight: 300;
+    font-size: 1.2em;
+    margin: 10px 0;
+    color: #CCC;
+}
+
+h3 {
+    margin: 10px 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 5px;
 }
