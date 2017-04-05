@@ -209,6 +209,24 @@ export class Simulator {
 
         app.server.addStatic("/web", "dist/web");
 
+        if((app.config as any).oscPort) {
+            let osc = new (require("node-osc").Server)((app.config as any).oscPort, "0.0.0.0");
+            osc.on("message", (msg: any[]) => {
+                if(msg[0] == "/loadImage") {
+                    this.loadImage(msg[1], msg[2]);
+                }
+                if(msg[0] == "/loadVideo") {
+                    this.loadVideo(msg[1], msg[2], msg[3], msg[4]);
+                }
+                if(msg[0] == "/loadMessage") {
+                    this.loadMessage(msg[1]);
+                }
+                if(msg[0] == "/loadColor") {
+                    this.loadColor(msg[1], msg[2], msg[3]);
+                }
+            });
+        }
+
         setInterval(() => {
             this.onFrame();
         }, 5);
@@ -340,7 +358,7 @@ export class Simulator {
         this.pushAction(() => this.app.networking.barrier(timeout));
     }
 
-    public loadImage(filename: string, stereoMode: StereoMode) {
+    public loadImage(filename: string, stereoMode: StereoMode = "mono") {
         this.pushAction(() => new Promise<void>((resolve, reject) => {
             this.app.networking.broadcast("loadImage", filename, stereoMode);
             resolve();
@@ -349,16 +367,16 @@ export class Simulator {
         this.present();
     }
 
-    public loadVideo(filename: string, stereoMode: StereoMode, framerate: number) {
+    public loadVideo(filename: string, stereoMode: StereoMode = "mono", framerate: number = 30, playAfter: number = 0.5) {
         this.pushAction(() => new Promise<void>((resolve, reject) => {
-            this.app.networking.broadcast("loadVideo", filename, stereoMode, framerate, new Date().getTime() + 200);
+            this.app.networking.broadcast("loadVideo", filename, stereoMode, framerate, new Date().getTime() + playAfter / 1000);
             resolve();
         }));
         this.barrier();
         this.present();
     }
 
-    public loadColor(r: number, g: number, b: number) {
+    public loadColor(r: number = 0, g: number = 0, b: number = 0) {
         this.pushAction(() => new Promise<void>((resolve, reject) => {
             this.app.networking.broadcast("loadColor", r, g, b);
             resolve();
@@ -366,7 +384,7 @@ export class Simulator {
         this.present();
     }
 
-    public loadMessage(text: string) {
+    public loadMessage(text: string = "PanoramaViewer") {
         this.pushAction(() => new Promise<void>((resolve, reject) => {
             this.app.networking.broadcast("loadMessage", text);
             resolve();
