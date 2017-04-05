@@ -9,9 +9,9 @@ export function orderFiles<File extends { filename: string, dirname: string }>(f
     }
     let result: { dirname: string, files: File[] }[] = [];
     dirs.forEach((files, dirname) => {
-        files.sort((a, b) => a < b ? -1 : 1);
+        files.sort((a, b) => a.filename.toLowerCase() < b.filename.toLowerCase() ? -1 : 1);
         result.push({ dirname: dirname, files: files });
     });
-    result.sort((a, b) => a.dirname < b.dirname ? -1 : 1);
+    result.sort((a, b) => a.dirname.toLowerCase() < b.dirname.toLowerCase() ? -1 : 1);
     return result;
 }

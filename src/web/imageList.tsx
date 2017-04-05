@@ -35,8 +35,8 @@ export class ImageListView extends React.Component<{}, {
     public render() {
         return (
             <div className="image-list-view">
-                {orderFiles(this.state.list).map(list => (
-                    <div className="files">
+                {orderFiles(this.state.list).map((list, idx) => (
+                    <div className="files" key={`f${idx}`}>
                         <h3>{list.dirname}</h3>
                         <p>
                             {list.files.map((l, index) => (
@@ -47,7 +47,7 @@ export class ImageListView extends React.Component<{}, {
                             ))}
                         </p>
                     </div>
-                ) }
+                )) }
             </div>
         );
     }
